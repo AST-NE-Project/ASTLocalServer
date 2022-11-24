@@ -1,70 +1,97 @@
-# Getting Started with Create React App
+<p style="display:flex; justify-content: center">
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+</p>
+<p align="center">
+  <a href="https://tdesign.tencent.com/starter/react/#/dashboard/base" target="_blank">
+    <img alt="TDesign Logo" width="200" src="https://tdesign.gtimg.com/starter/brand-logo.svg">
+  </a>
+</p>
 
-## Available Scripts
+<p align="center">
+  <a href="https://nodejs.org/en/about/releases/"><img src="https://img.shields.io/node/v/vite.svg" alt="node compatibility"></a>
+  <a href="https://github.com/Tencent/tdesign-react/blob/develop/LICENSE">
+    <img src="https://img.shields.io/npm/l/tdesign-react.svg?sanitize=true" alt="License">
+  </a>
+</p>
 
-In the project directory, you can run:
+English | [简体中文](./README-zh_CN.md) 
+### Introduction
 
-### `npm start`
+TDesign React Starter is a TDesign-based project developed with `React`, `Vite`. It can be customized theme configuration, and aims to provide project out-of-the-box, configuration-style middle and background projects.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+<p>
+  <a href="http://tdesign.tencent.com/starter/react/">Live Preview</a>
+  ·
+  <a href="https://tdesign.tencent.com/starter/docs/react/get-started">Documentation</a>
+</p>
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+<img src="docs/docs-starter.png">
 
-### `npm test`
+### Features
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+- Various provided pages for develop
+- Complete directory structure for develop
+- Code specification configuration
+- Support dark mode
+- Custom theme colors
+- Various space layouts
+- Mock data scheme
 
-### `npm run build`
+### Usage
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+> Initialize project with our CLI tool `tdesign-starter-cli` 
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```bash
+## install tdesign-starter-cli
+npm i tdesign-starter-cli@latest -g
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## create project
+td-starter init
+```
 
-### `npm run eject`
+### Develop
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+```bash
+## install dependencies
+npm install
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## set up
+npm run dev
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+### Build
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+```bash
+## build
+npm run build
 
-## Learn More
+## build for test
+npm run build:test
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### Contributing Guide
 
-### Code Splitting
+We welcome contributions to our project. Create your [Issue](https://github.com/tencent/tdesign-react-starter/issues/new/choose) or Submit your [Pull Request](https://github.com/Tencent/tdesign-react-starter/pulls).
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+#### Pull Request
 
-### Analyzing the Bundle Size
+1. Fork it!
+2. Create your branch: `git checkout -b feat/xxxx`
+3. Commit: `git commit -a 'feat(project): describe'`
+4. Push: `git push origin feat/xxxx`
+5. New Pull Request `pull request`
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+#### Commit Specification
 
-### Making a Progressive Web App
+- [Angular Convention](https://github.com/conventional-changelog/conventional-changelog/tree/master/packages/conventional-changelog-angular)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+### Compatibility
 
-### Advanced Configuration
+| [<img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/edge/edge_48x48.png" alt="IE / Edge" width="24px" height="24px" />](http://godban.github.io/browsers-support-badges/)</br> IE / Edge | [<img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/firefox/firefox_48x48.png" alt="Firefox" width="24px" height="24px" />](http://godban.github.io/browsers-support-badges/)</br>Firefox | [<img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/chrome/chrome_48x48.png" alt="Chrome" width="24px" height="24px" />](http://godban.github.io/browsers-support-badges/)</br>Chrome | [<img src="https://raw.githubusercontent.com/alrra/browser-logos/master/src/safari/safari_48x48.png" alt="Safari" width="24px" height="24px" />](http://godban.github.io/browsers-support-badges/)</br>Safari |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Edge >=84                                                                                                                                                                                                        | Firefox >=83                                                                                                                                                                                                      | Chrome >=84                                                                                                                                                                                                   | Safari >=14.1                                                                                                                                                                                                 |
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+### License
 
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+The MIT License. Please see [the license file](LICENSE) for more information.
