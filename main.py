@@ -15,13 +15,14 @@ import colorama
 from colorama import Fore, Style
 import time
 import win32process
+import sys
 
 HOST = '127.0.0.1'
 PORT = 3018
 ADDR = (HOST, PORT)
 BUFFSIZE = 1024
 MAX_LISTEN = 1
-__DEBUG_MODE__ = 1
+__DEBUG_MODE__ = 0
 
 
 ast_name = Fore.BLUE + """  ___   _____ _____    _____           _     ______           
@@ -45,46 +46,12 @@ msg_records = ""
 last_message = 0
 
 
-def check_updates():
-    response = uhttp.http_get(server_url + 'version')
-    _version = response.text
-    return _version
-
-
-def LaunchClientTips(left=5):
-    global extra_info, client_launched
-    if left == -1:
-        extra_info = ""
-        return
-    if left == 0:
-        extra_info = Fore.YELLOW + "Game Launched!" + Fore.RESET
-        client_launched = True
-        time.sleep(2)
-        LaunchClientTips(-1)
-        return
-    extra_info = "Client will launch in " + Fore.GREEN + \
-        str(left) + Fore.CYAN + " seconds." + Fore.RESET
-    time.sleep(1)
-    LaunchClientTips(left - 1)
-
-
-def PrintCopyright():
-    colorama.init()
-    print(ast_name + '\n')
-    v = check_updates()
-    if (v != version):
-        print(Fore.CYAN + "Currect Version: " + Fore.RED + version +
-              Fore.CYAN + " != " + Fore.GREEN + v + Fore.CYAN + ", please update.")
-        return False
-    else:
-        print(Fore.CYAN + "Currect Version: " + Fore.GREEN + version +
-              Fore.CYAN + ", no newer version exists." + Fore.RESET)
-    print('\n')
-    return True
+def clear():
+    os.system('cls')
 
 
 def refr():
-    os.system('cls')
+    clear()
     print(ast_name + '\n')
 
 
@@ -132,6 +99,47 @@ def disp():
         print(Fore.CYAN + "Press" + Fore.YELLOW +
               " [Key C]" + Fore.CYAN + " to chat with AST users, press " + Fore.YELLOW + "[Key S]" + Fore.CYAN + " to stop AST.")
         print(msg_records)
+
+
+def check_updates():
+    response = uhttp.http_get(server_url + 'version')
+    _version = response.text
+    return _version
+
+
+def LaunchClientTips(left=5):
+    global extra_info, client_launched
+    if left == -1:
+        extra_info = ""
+        disp()
+        return
+    if left == 0:
+        extra_info = Fore.YELLOW + "Game Launched!" + Fore.RESET
+        client_launched = True
+        disp()
+        time.sleep(2)
+        LaunchClientTips(-1)
+        return
+    extra_info = "Client will launch in " + Fore.GREEN + \
+        str(left) + Fore.CYAN + " seconds." + Fore.RESET
+    disp()
+    time.sleep(1)
+    LaunchClientTips(left - 1)
+
+
+def PrintCopyright():
+    colorama.init()
+    print(ast_name + '\n')
+    v = check_updates()
+    if (v != version):
+        print(Fore.CYAN + "Currect Version: " + Fore.RED + version +
+              Fore.CYAN + " != " + Fore.GREEN + v + Fore.CYAN + ", please update.")
+        return False
+    else:
+        print(Fore.CYAN + "Currect Version: " + Fore.GREEN + version +
+              Fore.CYAN + ", no newer version exists." + Fore.RESET)
+    print('\n')
+    return True
 
 # def ReadyForLaunch():
 
@@ -206,17 +214,18 @@ def ChatMode():
         keyboard.wait('c')
         tid, pid = win32process.GetWindowThreadProcessId(
             win32gui.GetForegroundWindow())
-        # print(psutil.Process(pid).name())
-        if (psutil.Process(pid).name() == 'cmd.exe' or psutil.Process(pid).name() == 'Code.exe'):
+        print(pid, os.getppid(), os.getpid())
+        if (pid == os.getpid() or pid == os.getppid()):
             chat_mode = True
             refr()
+            sys.stdin.flush()
             mess = input(Fore.MAGENTA + "[Input Message]: " + Fore.RESET)
             res = uhttp.http_get(server_url + 'sendmessage',
                                  {'username': account, 'message': mess, 'token': token})
             if res.status_code != 200:
                 print(Fore.RED + "Failed to send message!")
             chat_mode = False
-        # chat_mode = False
+            disp()
 
 
 def _async_raise(tid, exctype):
@@ -239,41 +248,62 @@ def stop_thread(thread):
     _async_raise(thread.ident, SystemExit)
 
 
+def GetMessage():
+    global token, last_message, msg_records
+    # print ("Try 2 get!")
+    res = uhttp.http_get(server_url + "getmessage",
+                         {'token': token, 'since': last_message})
+    if res.status_code != 200:
+        print(Fore.RED + "Errors happened when get message: " +
+              json.loads(res.text)['msg'])
+        return
+    msg = json.loads(res.text)['records']
+    for m in msg:
+        if m['level'] == 1:
+            msg_records = msg_records + Fore.CYAN + \
+                '[USER] ' + Fore.RESET + m['username'] + ': '
+        elif m['level'] == 10:
+            msg_records = msg_records + Fore.GREEN + \
+                '[ADMIN] ' + Fore.YELLOW + m['username'] + Fore.RESET + ': '
+        msg_records = msg_records + m['message'] + '\n'
+    # print("GET:", len(msg))
+    lines = msg_records.split('\n')
+    if len(lines) > 10:
+        msg_records = Fore.RESET
+        for i in range(len(lines) - 10, len(lines)):
+            if lines[i] == "":
+                continue    
+            msg_records = msg_records + lines[i] + '\n'
+    if len(msg) != 0:
+        last_message = msg[-1]['time']
+        disp()
+        # print(lines)
+
+
 def MessageGetter():
     global token, last_message, msg_records
     msg_records = Fore.RESET
     while True:
-        res = uhttp.http_get(server_url + "getmessage",
-                             {'token': token, 'since': last_message})
-        if res.status_code != 200:
-            print(Fore.RED + "Errors happened when get message: " +
-                  json.loads(res.text)['msg'])
-            continue
-        msg = json.loads(res.text)['records']
-        for m in msg:
-            if m['level'] == 1:
-                msg_records = msg_records + Fore.CYAN + '[USER] ' + Fore.RESET + m['username'] + ': '
-            elif m['level'] == 10:
-                msg_records = msg_records + Fore.GREEN + '[ADMIN] '+ Fore.YELLOW + m['username'] + Fore.RESET + ': '
-            msg_records = msg_records + m['message'] + '\n'
-        if len(msg) != 0:
-            last_message = msg[-1]['time']
+        # print("start to get.")
+        GetMessage()
         time.sleep(1)
 
 
 if __name__ == '__main__':
-    os.system("cls")
+    clear()
+    colorama.init()
     if (PrintCopyright() == False):
         exit()
     LoginAccount()
+    # GetMessage()
     msgg = Thread(target=MessageGetter)
     msgg.start()
     server.start()
     chat = Thread(target=ChatMode)
     chat.start()
+    disp()
     try:
         while True:
-            disp()
             time.sleep(1)
     except KeyboardInterrupt:
         # print("key board stop!")
