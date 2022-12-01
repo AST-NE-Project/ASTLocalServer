@@ -41,6 +41,8 @@ client_launched = False
 ne_launched = False
 extra_info = ""
 chat_mode = False
+msg_records = ""
+last_message = 0
 
 
 def check_updates():
@@ -129,6 +131,7 @@ def disp():
         print('\n')
         print(Fore.CYAN + "Press" + Fore.YELLOW +
               " [Key C]" + Fore.CYAN + " to chat with AST users, press " + Fore.YELLOW + "[Key S]" + Fore.CYAN + " to stop AST.")
+        print(msg_records)
 
 # def ReadyForLaunch():
 
@@ -201,13 +204,17 @@ def ChatMode():
     global chat_mode, account, token
     while True:
         keyboard.wait('c')
-        tid, pid = win32process.GetWindowThreadProcessId(win32gui.GetForegroundWindow())
+        tid, pid = win32process.GetWindowThreadProcessId(
+            win32gui.GetForegroundWindow())
         # print(psutil.Process(pid).name())
         if (psutil.Process(pid).name() == 'cmd.exe' or psutil.Process(pid).name() == 'Code.exe'):
             chat_mode = True
             refr()
             mess = input(Fore.MAGENTA + "[Input Message]: " + Fore.RESET)
-            uhttp.http_get(server_url + 'sendmessage', {'username': account, 'message':mess, 'token': token})
+            res = uhttp.http_get(server_url + 'sendmessage',
+                                 {'username': account, 'message': mess, 'token': token})
+            if res.status_code != 200:
+                print(Fore.RED + "Failed to send message!")
             chat_mode = False
         # chat_mode = False
 
@@ -232,11 +239,35 @@ def stop_thread(thread):
     _async_raise(thread.ident, SystemExit)
 
 
+def MessageGetter():
+    global token, last_message, msg_records
+    msg_records = Fore.RESET
+    while True:
+        res = uhttp.http_get(server_url + "getmessage",
+                             {'token': token, 'since': last_message})
+        if res.status_code != 200:
+            print(Fore.RED + "Errors happened when get message: " +
+                  json.loads(res.text)['msg'])
+            continue
+        msg = json.loads(res.text)['records']
+        for m in msg:
+            if m['level'] == 1:
+                msg_records = msg_records + Fore.CYAN + '[USER] ' + Fore.RESET + m['username'] + ': '
+            elif m['level'] == 10:
+                msg_records = msg_records + Fore.GREEN + '[ADMIN] '+ Fore.YELLOW + m['username'] + Fore.RESET + ': '
+            msg_records = msg_records + m['message'] + '\n'
+        if len(msg) != 0:
+            last_message = msg[-1]['time']
+        time.sleep(1)
+
+
 if __name__ == '__main__':
     os.system("cls")
     if (PrintCopyright() == False):
         exit()
     LoginAccount()
+    msgg = Thread(target=MessageGetter)
+    msgg.start()
     server.start()
     chat = Thread(target=ChatMode)
     chat.start()
@@ -247,6 +278,7 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         # print("key board stop!")
         stop_thread(chat)
+        stop_thread(msgg)
         print('stop!')
         s.close()
         # stop_thread(server)
