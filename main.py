@@ -1,20 +1,27 @@
 import socket
-from time import ctime
 import json
 import os
 from threading import Thread
 import getpass
+import inspect
+import ctypes
+# import threading
 import psutil
+import win32gui
+import keyboard
 import uhttp
 import config
 import colorama
 from colorama import Fore, Style
 import time
+import win32process
+
 HOST = '127.0.0.1'
 PORT = 3018
 ADDR = (HOST, PORT)
 BUFFSIZE = 1024
 MAX_LISTEN = 1
+__DEBUG_MODE__ = 1
 
 
 ast_name = Fore.BLUE + """  ___   _____ _____    _____           _     ______           
@@ -24,17 +31,39 @@ ast_name = Fore.BLUE + """  ___   _____ _____    _____           _     ______
 | | | |/\__/ / | |      | | (_) | (_) | \__ \| |_/ / (_) >  < 
 \_| |_/\____/  \_/      \_/\___/ \___/|_|___/\____/ \___/_/\_\ """ + Fore.RESET
 version = "1.0.0"
-server_url = 'http://localhost:3000/api/'
+if __DEBUG_MODE__:
+    server_url = 'http://127.0.0.1:3000/api/'
+else:
+    server_url = 'http://43.134.185.202:3000/api/'
 account = ""
 token = ""
 client_launched = False
 ne_launched = False
+extra_info = ""
+chat_mode = False
 
 
 def check_updates():
     response = uhttp.http_get(server_url + 'version')
     _version = response.text
     return _version
+
+
+def LaunchClientTips(left=5):
+    global extra_info, client_launched
+    if left == -1:
+        extra_info = ""
+        return
+    if left == 0:
+        extra_info = Fore.YELLOW + "Game Launched!" + Fore.RESET
+        client_launched = True
+        time.sleep(2)
+        LaunchClientTips(-1)
+        return
+    extra_info = "Client will launch in " + Fore.GREEN + \
+        str(left) + Fore.CYAN + " seconds." + Fore.RESET
+    time.sleep(1)
+    LaunchClientTips(left - 1)
 
 
 def PrintCopyright():
@@ -90,15 +119,26 @@ def renderne():
 
 
 def disp():
-    refr()
-    print(Fore.CYAN + "CPU Usage: " + rendercpu() + ", MEM Usage: " + rendermem() + ", NE-Launcher: " + renderne() + ", GAME-Client: " + renderclient())
+    global extra_info, chat_mode
+    if chat_mode == False:
+        refr()
+        print(Fore.CYAN + "CPU Usage: " + rendercpu() + ", MEM Usage: " + rendermem() +
+              ", NE-Launcher: " + renderne() + ", GAME-Client: " + renderclient() + '.')
+        if extra_info != "":
+            print('\n' + extra_info)
+        print('\n')
+        print(Fore.CYAN + "Press" + Fore.YELLOW +
+              " [Key C]" + Fore.CYAN + " to chat with AST users, press " + Fore.YELLOW + "[Key S]" + Fore.CYAN + " to stop AST.")
 
 # def ReadyForLaunch():
 
 
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+
 def MainServer():
-    global ne_launched
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+    global ne_launched, s
+    with s:
         s.bind(ADDR)
         s.listen(MAX_LISTEN)
         while True:
@@ -107,20 +147,18 @@ def MainServer():
             if msg == "exit":
                 s.close()
                 break
-            if msg == "launch":
-                pass
-            if msg == "ne-launch":
-                ne_launched = True
+            if msg == "game_launch":
+                thTips = Thread(target=LaunchClientTips())
+                thTips.start()
                 continue
             # conn.send("Hello, world!".encode())
             # print(conn.recv(BUFFSIZE).decode())
-            s.close()
-            break
+        s.close()
 
 
 def LoginAccount(auto=False):
     # refr()
-    global account
+    global account, token
     password = ""
     if config.is_section_exist("account") and auto == False:
         account = config.get_config("account", "username")
@@ -140,9 +178,9 @@ def LoginAccount(auto=False):
         account = ""
         LoginAccount(auto)
         return
-    # print(res.status_code)
+    # print()
     # print(account, password)
-
+    token = json.loads(res.text)['token']
     if config.is_section_exist("account") == False:
         config.create_section("account")
     config.set_config("account", "username", account)
@@ -157,7 +195,41 @@ server = Thread(target=MainServer)
 
 def StartLocalServer():
     server.start()
-    # server.join(0)
+
+
+def ChatMode():
+    global chat_mode, account, token
+    while True:
+        keyboard.wait('c')
+        tid, pid = win32process.GetWindowThreadProcessId(win32gui.GetForegroundWindow())
+        # print(psutil.Process(pid).name())
+        if (psutil.Process(pid).name() == 'cmd.exe' or psutil.Process(pid).name() == 'Code.exe'):
+            chat_mode = True
+            refr()
+            mess = input(Fore.MAGENTA + "[Input Message]: " + Fore.RESET)
+            uhttp.http_get(server_url + 'sendmessage', {'username': account, 'message':mess, 'token': token})
+            chat_mode = False
+        # chat_mode = False
+
+
+def _async_raise(tid, exctype):
+    """raises the exception, performs cleanup if needed"""
+    tid = ctypes.c_long(tid)
+    if not inspect.isclass(exctype):
+        exctype = type(exctype)
+    res = ctypes.pythonapi.PyThreadState_SetAsyncExc(
+        tid, ctypes.py_object(exctype))
+    if res == 0:
+        raise ValueError("invalid thread id")
+    elif res != 1:
+        # """if it returns a number greater than one, you're in trouble,
+        # and you should call it again with exc=NULL to revert the effect"""
+        ctypes.pythonapi.PyThreadState_SetAsyncExc(tid, None)
+        raise SystemError("PyThreadState_SetAsyncExc failed")
+
+
+def stop_thread(thread):
+    _async_raise(thread.ident, SystemExit)
 
 
 if __name__ == '__main__':
@@ -165,8 +237,18 @@ if __name__ == '__main__':
     if (PrintCopyright() == False):
         exit()
     LoginAccount()
-    while True:
-        disp()
-        time.sleep(1)
+    server.start()
+    chat = Thread(target=ChatMode)
+    chat.start()
+    try:
+        while True:
+            disp()
+            time.sleep(1)
+    except KeyboardInterrupt:
+        # print("key board stop!")
+        stop_thread(chat)
+        print('stop!')
+        s.close()
+        # stop_thread(server)
     # check_updates()
     # MainServer()
