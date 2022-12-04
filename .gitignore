@@ -1,5 +1,7 @@
 __pycache__/
 dist/
+resource/
 build/
+DownloadRequest/
 settings.conf
-main.spec
+*.spec

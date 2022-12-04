@@ -18,7 +18,7 @@ import win32process
 import sys
 
 HOST = '127.0.0.1'
-PORT = 3018
+PORT = 6000
 ADDR = (HOST, PORT)
 BUFFSIZE = 1024
 MAX_LISTEN = 1
@@ -163,7 +163,7 @@ def MainServer():
                 thTips.start()
                 continue
             # conn.send("Hello, world!".encode())
-            # print(conn.recv(BUFFSIZE).decode())
+            print(conn.recv(BUFFSIZE).decode())
         s.close()
 
 
@@ -296,21 +296,24 @@ if __name__ == '__main__':
         exit()
     LoginAccount()
     # GetMessage()
-    msgg = Thread(target=MessageGetter)
-    msgg.start()
-    server.start()
-    chat = Thread(target=ChatMode)
-    chat.start()
+    # msgg = Thread(target=MessageGetter)
+    # msgg.start()
+    # server.start()
+    # chat = Thread(target=ChatMode)
+    # chat.start()
     disp()
-    try:
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        # print("key board stop!")
-        stop_thread(chat)
-        stop_thread(msgg)
-        print('stop!')
-        s.close()
+    # print(os.getcwd() + "\\resource")
+    print ("token =", token)
+    # os.system("cd resource && start CosService.exe " + token + " > log.txt")
+    # try:
+    #     while True:
+    #         time.sleep(1)
+    # except KeyboardInterrupt:
+    #     # print("key board stop!")
+    #     stop_thread(chat)
+    #     stop_thread(msgg)
+    #     print('stop!')
+    #     s.close()
         # stop_thread(server)
     # check_updates()
     # MainServer()
