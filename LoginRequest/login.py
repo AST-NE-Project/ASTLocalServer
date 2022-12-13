@@ -8,7 +8,7 @@ def http_get(url, par={}):
     return res
 
 
-def LoginAccount(username, password, server = 'http://43.134.185.202:3000/api/'):
+def LoginAccount(username, password, server = 'http://api.zshfoj.com/api/'):
     res = http_get(server + 'userlogin',
                    {'username': username, 'password': password})
     if res.status_code == 401:
