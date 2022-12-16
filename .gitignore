@@ -3,5 +3,6 @@ dist/
 resource/
 build/
 DownloadRequest/
+tokens/
 settings.conf
 *.spec
