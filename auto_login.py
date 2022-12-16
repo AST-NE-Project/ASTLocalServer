@@ -30,3 +30,4 @@ if __name__ == "__main__":
         print(json.dumps({'success': False, 'msg': 'login button could not found.'}))
         exit()
     pyautogui.click(login)
+    print(json.dumps({'success': True, 'msg': None}))
